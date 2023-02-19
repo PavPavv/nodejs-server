@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      input {
+        width: 30px;
+        border: 1px solid green;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="table"></table>
+    <script>
+      'use strict';
+      const socket = new WebSocket('ws://127.0.0.1:8000/');
+      const table = document.getElementById('table');
+      const cells = {};
+      const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+      socket.onmessage = (event) => {
+        const change = JSON.parse(event.data);
+        const cell = cells[change.cell];
+        cell.value = change.value;
+      };
+
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td></td>' + letters.map((letter) => `<td>${letter}</td>`).join('');
+      table.appendChild(tr);
+
+      const handleKeyUp = (event) => {
+        socket.send(
+          JSON.stringify({
+            cell: event.target.id,
+            value: event.target.value,
+          }),
+        );
+      };
+
+      const createRow = (i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          `<td>${i}</td>` +
+          letters
+            .map((letter) => {
+              return `<td><input id="${letter}${i}" type="text" /></td>`;
+            })
+            .join('');
+        table.appendChild(tr);
+
+        letters.forEach((letter) => {
+          const cell = letter + i;
+          const input = document.getElementById(cell);
+          input.addEventListener('keyup', handleKeyUp);
+          cells[cell] = input;
+        });
+      };
+
+      for (let i = 1; i <= 5; i++) createRow(i);
+    </script>
+  </body>
+</html>

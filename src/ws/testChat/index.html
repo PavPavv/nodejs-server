@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WS</title>
+  </head>
+  <body>
+    <h1>Chat</h1>
+    <div id="chat"></div>
+    <input type="text" id="msg" />
+    <style>
+      input {
+        border: 1px solid green;
+      }
+    </style>
+    <script>
+      'use strict';
+      const main = () => {
+        const CHAR_RETURN = 13;
+        const socket = new WebSocket('ws://127.0.0.1:8000/chat');
+        const chat = document.getElementById('chat');
+        const msg = document.getElementById('msg');
+        msg.focus();
+        const writeLine = (text) => {
+          const line = document.createElement('div');
+          line.innerHTML = `<p>${text}</p>`;
+          chat.appendChild(line);
+        };
+
+        socket.onopen = () => {
+          writeLine('connected');
+        };
+
+        socket.close = () => {
+          writeLine('close');
+        };
+
+        socket.onmessage = (event) => {
+          writeLine(event.data);
+        };
+
+        msg.addEventListener('keydown', (event) => {
+          if (event.keyCode === CHAR_RETURN) {
+            const message = msg.value;
+            msg.value = '';
+            writeLine(message);
+            socket.send(message);
+          }
+        });
+      };
+      main();
+    </script>
+  </body>
+</html>
